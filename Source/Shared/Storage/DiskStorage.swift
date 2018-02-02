@@ -44,34 +44,41 @@ final class DiskStorage {
 }
 
 extension DiskStorage: StorageAware {
-  func entry<T: Codable>(ofType type: T.Type, forKey key: String) throws -> Entry<T> {
-    let filePath = makeFilePath(for: key)
-    let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
-    let attributes = try fileManager.attributesOfItem(atPath: filePath)
-    let object: T = try DataSerializer.deserialize(data: data)
+	func entry<T: Codable>(ofType type: T.Type, forKey key: String) throws -> Entry<T> {
+		let filePath = makeFilePath(for: key)
+		let data = try Data(contentsOf: URL(fileURLWithPath: filePath))
+		let attributes = try fileManager.attributesOfItem(atPath: filePath)
 
-    guard let date = attributes[.modificationDate] as? Date else {
-      throw StorageError.malformedFileAttributes
-    }
+		guard let date = attributes[.modificationDate] as? Date else {
+			throw StorageError.malformedFileAttributes
+		}
 
-    let meta: [String: Any] = [
-      "filePath": filePath
-    ]
+		let meta: [String: Any] = [
+			"filePath": filePath
+		]
 
-    return Entry(
-      object: object,
-      expiry: Expiry.date(date),
-      meta: meta
-    )
-  }
+		let object: T = T.self == Data.self
+			? data as! T
+			: try DataSerializer.deserialize(data: data)
 
-  func setObject<T: Codable>(_ object: T, forKey key: String, expiry: Expiry? = nil) throws {
-    let expiry = expiry ?? config.expiry
-    let data = try DataSerializer.serialize(object: object)
-    let filePath = makeFilePath(for: key)
-    _ = fileManager.createFile(atPath: filePath, contents: data, attributes: nil)
-    try fileManager.setAttributes([.modificationDate: expiry.date], ofItemAtPath: filePath)
-  }
+		return Entry(
+			object: object,
+			expiry: Expiry.date(date),
+			meta: meta
+		)
+	}
+
+	func setObject<T: Codable>(_ object: T, forKey key: String, expiry: Expiry? = nil) throws {
+		let expiry = expiry ?? config.expiry
+
+		let data = object is Data
+			? object as! Data
+			: try DataSerializer.serialize(object: object)
+
+		let filePath = makeFilePath(for: key)
+		_ = fileManager.createFile(atPath: filePath, contents: data, attributes: nil)
+		try fileManager.setAttributes([.modificationDate: expiry.date], ofItemAtPath: filePath)
+	}
 
   func removeObject(forKey key: String) throws {
     try fileManager.removeItem(atPath: makeFilePath(for: key))

@@ -4,6 +4,7 @@ import XCTest
 final class DiskStorageTests: XCTestCase {
   private let key = "youknownothing"
   private let testObject = User(firstName: "John", lastName: "Snow")
+  private let testData = Data([1,2,3,4,5,6,7,8])
   private let fileManager = FileManager()
   private var storage: DiskStorage!
   private let config = DiskConfig(name: "Floppy")
@@ -72,6 +73,12 @@ final class DiskStorageTests: XCTestCase {
     XCTAssertTrue(fileExist)
   }
 
+	func testsetData() throws {
+		try storage.setObject(testData, forKey: key)
+		let fileExist = fileManager.fileExists(atPath: storage.makeFilePath(for: key))
+		XCTAssertTrue(fileExist)
+	}
+
   /// Test that
   func testCacheEntry() throws {
     // Returns nil if entry doesn't exist
@@ -100,6 +107,13 @@ final class DiskStorageTests: XCTestCase {
     XCTAssertEqual(cachedObject?.firstName, testObject.firstName)
     XCTAssertEqual(cachedObject?.lastName, testObject.lastName)
   }
+
+	func testSetDataAndGetFromCache() throws {
+		try storage.setObject(testData, forKey: key)
+		let cachedData: Data? = try storage.object(ofType: Data.self, forKey: key)
+
+		XCTAssertEqual(cachedData?.count, testData.count)
+	}
 
   /// Test that it removes cached object
   func testRemoveObject() throws {
