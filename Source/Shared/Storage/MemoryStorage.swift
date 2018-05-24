@@ -14,7 +14,6 @@ final class MemoryStorage {
   init(config: MemoryConfig) {
     self.config = config
     self.cache.countLimit = Int(config.countLimit)
-    self.cache.totalCostLimit = Int(config.totalCostLimit)
   }
 }
 
@@ -37,7 +36,7 @@ extension MemoryStorage: StorageAware {
   }
 
   func setObject<T: Codable>(_ object: T, forKey key: String, expiry: Expiry? = nil) {
-    let capsule = MemoryCapsule(value: object, expiry: expiry ?? config.expiry)
+    let capsule = MemoryCapsule(value: object, expiry: .date(expiry?.date ?? config.expiry.date))
     cache.setObject(capsule, forKey: NSString(string: key))
     keys.insert(key)
   }
