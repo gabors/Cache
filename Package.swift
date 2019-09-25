@@ -21,9 +21,5 @@ let package = Package(
             name: "Cache",
             path: "Source/Shared",
             exclude: ["Library/ImageWrapper.swift"]), // relative to the target path
-        .testTarget(
-            name: "CacheTests",
-            dependencies: ["Cache"],
-            path: "Tests"),
     ]
 )
