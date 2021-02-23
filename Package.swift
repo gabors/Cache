@@ -1,4 +1,4 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -21,5 +21,6 @@ let package = Package(
             name: "Cache",
             path: "Source/Shared",
             exclude: ["Library/ImageWrapper.swift"]), // relative to the target path
-    ]
+    ],
+    swiftLanguageVersions: [.v5]
 )
